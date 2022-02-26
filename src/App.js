@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 
 import Home from './pages/Home';
+import Wallet from './pages/Wallet'
 import Transaction from './pages/Transaction';
 import Account from './pages/Account';
 import Contract from './pages/Contract';
@@ -62,28 +63,33 @@ function App() {
             mode="horizontal"
             defaultSelectedKeys={['']}
             style={{ width: '25%' }} >
-              <Menu.Item key="1" >
-                Transaction
-                <Link to="/Transaction" />
-              </Menu.Item>
-              <Menu.Item key="2">
-                Account
-                <Link to="/Account" />
-              </Menu.Item>
-              <Menu.Item key="3">
-                Contract
-                <Link to="/Contract" />
-              </Menu.Item>
-              <Menu.Item key="4">
-                Hedera Token
-                <Link to="/Token" />
-              </Menu.Item>
+            <Menu.Item key="1" >
+              Wallet
+              <Link to="/Wallet" />
+            </Menu.Item>
+            <Menu.Item key="2" >
+              Transaction
+              <Link to="/Transaction" />
+            </Menu.Item>
+            <Menu.Item key="3">
+              Account
+              <Link to="/Account" />
+            </Menu.Item>
+            <Menu.Item key="4">
+              Contract
+              <Link to="/Contract" />
+            </Menu.Item>
+            <Menu.Item key="5">
+              Hedera Token
+              <Link to="/Token" />
+            </Menu.Item>
           </Menu>
         </Header>
         <Content className="site-layout" style={{ padding: '0 50px', marginTop: 64, display: 'flex', flexDirection: 'column' }}>
           <div className="site-layout-background" style={{ padding: 24, flex: '1 0 0' }}>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/Wallet" element={<Wallet />} />
               <Route path="/Transaction" element={<Transaction />} />
               <Route path="/Account" element={<Account />} />
               <Route path="/Contract" element={<Contract />} />
