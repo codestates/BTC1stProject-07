@@ -2,6 +2,8 @@ import './App.css';
 import 'antd/dist/antd.min.css';
 import './index.css';
 import styled from 'styled-components';
+import React from 'react';
+import { useKeyword } from './utils/store';
 
 import { Layout, Menu, Input } from 'antd';
 
@@ -15,9 +17,7 @@ import Home from './pages/Home';
 import Transaction from './pages/Transaction';
 import Account from './pages/Account';
 import Contract from './pages/Contract';
-import Topic from './pages/Topic';
 import Token from './pages/Token';
-import Memo from './pages/Memo';
 
 const { Header, Content, Footer } = Layout;
 const { Search } = Input;
@@ -31,9 +31,14 @@ const Logo = styled.img`
 `
 
 function App() {
+  const [keyword, setKeyword] = useKeyword((state) => [state.keyword, state.setKeyword]);
 
   const onSearch = () => {
-    console.log('onSearching...')
+    console.log('keyword', keyword)
+  }
+  const searchKeyWord = (e) => {
+    console.log('searchKeyWord...', e.target.value)
+    setKeyword(e.target.value)
   }
 
   return (
@@ -50,6 +55,7 @@ function App() {
             size="large"
             onSearch={onSearch}
             style={{ height: '5vh', margin: '1vh', width: '65%' }}
+            onChange={searchKeyWord}
           />
           <Menu
             theme="dark"
@@ -69,16 +75,8 @@ function App() {
                 <Link to="/Contract" />
               </Menu.Item>
               <Menu.Item key="4">
-                Topic
-                <Link to="/Topic" />
-              </Menu.Item>
-              <Menu.Item key="5">
                 Hedera Token
                 <Link to="/Token" />
-              </Menu.Item>
-              <Menu.Item key="6" >
-                memo field
-                <Link to="/Memo" />
               </Menu.Item>
           </Menu>
         </Header>
@@ -89,9 +87,7 @@ function App() {
               <Route path="/Transaction" element={<Transaction />} />
               <Route path="/Account" element={<Account />} />
               <Route path="/Contract" element={<Contract />} />
-              <Route path="/Topic" element={<Topic />} />
               <Route path="/Token" element={<Token />} />
-              <Route path="/Memo" element={<Memo />} />
             </Routes>
           </div>
         </Content>

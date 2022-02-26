@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'antd/dist/antd.min.css';
-import { Table, Tooltip } from 'antd';
-import { useTransaction } from '../utils/store';
+import { Table } from 'antd';
+import { useTransaction, useKeyword } from '../utils/store';
+import LoadingIndicator from '../components/LoadingIndicator';
 
 function Transaction() {
-
+    const [isLoading, setIsLoading] = useState(true);
     const columns = [
         {
             title: 'TxHash',
@@ -20,30 +21,25 @@ function Transaction() {
             dataIndex: 'transaction_id',
             key: 'transaction_id',
         },
-        {
+        /*{
             title: 'ChargedFee',
             dataIndex: 'charged_tx_fee',
             key: 'charged_tx_fee',
+        },*/
+        {
+            title: 'TransfersLen',
+            dataIndex: 'transferslen',
+            key: 'transferslen',
         },
+        /*{
+            title: 'Transfers',
+            dataIndex: 'transfers',
+            key: 'transfers',
+        },*/
         {
             title: 'ConsenTime',
             dataIndex: 'consensus_timestamp',
             key: 'consensus_timestamp',
-        },
-        {
-            title: 'EntityId',
-            dataIndex: 'entity_id',
-            key: 'entity_id',
-        },
-        {
-            title: 'MaxFee',
-            dataIndex: 'max_fee',
-            key: 'max_fee',
-        },
-        {
-            title: 'Memo',
-            dataIndex: 'memo_base64',
-            key: 'memo_base64',
         },
         {
             title: 'Name',
@@ -66,65 +62,105 @@ function Transaction() {
             key: 'result',
         },
         {
-            title: 'Scheduled',
-            dataIndex: 'scheduled',
-            key: 'scheduled',
-        },
-        {
-            title: 'ValidSec',
-            dataIndex: 'valid_duration_seconds',
-            key: 'valid_duration_seconds',
+            title: 'Memo',
+            dataIndex: 'memo_base64',
+            key: 'memo_base64',
+            ellipsis: {
+                showTitle: false,
+            },
         },
     ];
 
     const databucket = [];
     const [transaction, setTransaction] = useTransaction((state) => [state.transaction, state.setTransaction]);
+    const [keyword] = useKeyword((state) => [state.keyword]);
 
     const getTransactions = async () => {
-        await axios.get('https://testnet.mirrornode.hedera.com/api/v1/transactions')
+        if(keyword === []) {
+            // No Keyword
+            await axios.get('https://testnet.mirrornode.hedera.com/api/v1/transactions')
             .then(function (response) {
                 // 성공 핸들링
-                response.data.transactions.map((el) => {
-                    //console.log('transactions', el.charged_tx_fee);
+                for (let i = 0; i < response.data.transactions.length; i++) {
+                    const el = response.data.transactions[i];
                     const obj = {
-                        charged_tx_fee: el.charged_tx_fee,
+                        key: i,
+                        //charged_tx_fee: el.charged_tx_fee,
                         consensus_timestamp: el.consensus_timestamp,
-                        entity_id: el.entity_id,
-                        max_fee: el.max_fee,
                         memo_base64: el.memo_base64,
                         name: el.name,
                         node: el.node,
                         nonce: el.nonce,
                         result: el.result,
-                        scheduled: el.scheduled,
                         transaction_hash: el.transaction_hash,
                         transaction_id: el.transaction_id,
-                        transfers: el.transfers,
-                        valid_duration_seconds: el.valid_duration_seconds,
-                        valid_start_timestamp: el.valid_start_timestamp
+                        transferslen: el.transfers.length,
+                        //transfers: el.transfers[0].account + el.transfers[0].amount,
                     }
                     console.log('obj', obj);
                     databucket.push(obj);
-                });
+                };
                 console.log("databucket", databucket);
                 setTransaction(databucket);
+                setIsLoading(false);
             })
             .catch(function (error) {
                 // 에러 핸들링
                 console.log("error", error);
+                setTransaction([]);
             })
-    };
+        } else {
+            // Search Keyword
+            await axios.get('https://testnet.mirrornode.hedera.com/api/v1/transactions', {
+                params: {
+                    "account.id" : keyword,
+                }
+            })
+            .then(function (response) {
+                // 성공 핸들링
+                for (let i = 0; i < response.data.transactions.length; i++) {
+                    const el = response.data.transactions[i];
+                    const obj = {
+                        key: i,
+                        //charged_tx_fee: el.charged_tx_fee,
+                        consensus_timestamp: el.consensus_timestamp,
+                        memo_base64: el.memo_base64,
+                        name: el.name,
+                        node: el.node,
+                        nonce: el.nonce,
+                        result: el.result,
+                        transaction_hash: el.transaction_hash,
+                        transaction_id: el.transaction_id,
+                        transferslen: el.transfers.length,
+                        //transfers: el.transfers[0].account + el.transfers[0].amount,
+                    }
+                    console.log('obj', obj);
+                    databucket.push(obj);
+                };
+                console.log("databucket", databucket);
+                setTransaction(databucket);
+                setIsLoading(false);
+            })
+            .catch(function (error) {
+                // 에러 핸들링
+                console.log("error", error);
+                setTransaction([]);
+            })
+        }
+    }
+
 
     useEffect(() => {
+        setTransaction([]);
+        setIsLoading(true);
         getTransactions();
-    }, [])
+    }, [keyword])
 
     return (
         <div>
             <h1>Transaction-page</h1>
             <div>
-                {/*<button onClick={updateTransaction}>updateTransaction</button>*/}
-                <Table columns={columns} dataSource={transaction} scroll={{ x: 1300, y: 550 }} />
+                {isLoading ? <LoadingIndicator /> : <Table columns={columns} dataSource={transaction} scroll={{ x: 1300, y: 550 }} />}
             </div>
         </div>
     );
