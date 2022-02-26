@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'antd/dist/antd.min.css';
 import { Table } from 'antd';
-import { useToken } from '../utils/store';
+import { useToken, useKeyword } from '../utils/store';
 import LoadingIndicator from '../components/LoadingIndicator';
 
 function Token() {
@@ -27,36 +27,72 @@ function Token() {
 
     const databucket = [];
     const [token, setToken] = useToken((state) => [state.token, state.setToken]);
+    const [keyword] = useKeyword((state) => [state.keyword]);
 
     const getToken = async () => {
-        await axios.get('https://testnet.mirrornode.hedera.com/api/v1/tokens')
-            .then(function (response) {
-                // 성공 핸들링
-                for (let i = 0; i < response.data.tokens.length; i++) {
-                    const el = response.data.tokens[i];
-                    const obj = {
-                        key: i,
-                        token_id: el.token_id,
-                        symbol: el.symbol,
-                        type: el.type,
-                    }
-                    console.log('obj', obj);
-                    databucket.push(obj);
-                };
-                console.log("databucket", databucket);
-                setToken(databucket);
-                setIsLoading(false);
+        if (keyword === []) {
+            // No Keyword
+            await axios.get('https://testnet.mirrornode.hedera.com/api/v1/tokens')
+                .then(function (response) {
+                    // 성공 핸들링
+                    for (let i = 0; i < response.data.tokens.length; i++) {
+                        const el = response.data.tokens[i];
+                        const obj = {
+                            key: i,
+                            token_id: el.token_id,
+                            symbol: el.symbol,
+                            type: el.type,
+                        }
+                        console.log('obj', obj);
+                        databucket.push(obj);
+                    };
+                    console.log("databucket", databucket);
+                    setToken(databucket);
+                    setIsLoading(false);
+                })
+                .catch(function (error) {
+                    // 에러 핸들링
+                    console.log("error", error);
+                    setToken([]);
+                })
+        } else {
+            // Search Keyword
+            await axios.get('https://testnet.mirrornode.hedera.com/api/v1/tokens', {
+                params: {
+                    "token.id": keyword,
+                }
             })
-            .catch(function (error) {
-                // 에러 핸들링
-                console.log("error", error);
-            })
+                .then(function (response) {
+                    // 성공 핸들링
+                    for (let i = 0; i < response.data.tokens.length; i++) {
+                        const el = response.data.tokens[i];
+                        const obj = {
+                            key: i,
+                            token_id: el.token_id,
+                            symbol: el.symbol,
+                            type: el.type,
+                        }
+                        console.log('obj', obj);
+                        databucket.push(obj);
+                    };
+                    console.log("databucket", databucket);
+                    setToken(databucket);
+                    setIsLoading(false);
+                })
+                .catch(function (error) {
+                    // 에러 핸들링
+                    console.log("error", error);
+                    setToken([]);
+                })
+        }
+
     };
 
     useEffect(() => {
+        setToken([]);
         setIsLoading(true);
         getToken();
-    }, [])
+    }, [keyword])
 
     return (
         <div>
